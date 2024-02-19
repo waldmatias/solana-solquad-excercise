@@ -2,20 +2,28 @@ import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import idl from "../target/idl/solquad.json";
 import {Solquad} from "../target/types/solquad";
-
 import { utf8 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import {BN} from "bn.js";
 
-describe("solquad", () => {
-  const connection = new anchor.web3.Connection("http://localhost:8899" /*anchor.web3.clusterApiUrl("devnet")*/, 'confirmed');
-  const programId = new anchor.web3.PublicKey("5dTxFCE8CjNc11j6tuQGqgMoh77oJRaC1TTZ89ihFySR");
 
-  const admin = anchor.web3.Keypair.generate();
-  const admin2 = anchor.web3.Keypair.generate();
-  const wallet = new anchor.Wallet(admin);
+// setup
+const connection = new anchor.web3.Connection("http://localhost:8899" /*anchor.web3.clusterApiUrl("devnet")*/, 'confirmed');
+const programId = new anchor.web3.PublicKey("5dTxFCE8CjNc11j6tuQGqgMoh77oJRaC1TTZ89ihFySR");
 
-  const provider = new anchor.AnchorProvider(connection, wallet, {});
-  const provider2 = new anchor.AnchorProvider(connection, new anchor.Wallet(admin2), {});
+const admin = anchor.web3.Keypair.generate();
+const admin2 = anchor.web3.Keypair.generate();
+const wallet = new anchor.Wallet(admin);
+
+const provider = new anchor.AnchorProvider(connection, wallet, {});
+const provider2 = new anchor.AnchorProvider(connection, new anchor.Wallet(admin2), {});
+
+before(async () => {
+    await airdrop(admin, provider);
+    await airdrop(admin2, provider2);
+});
+
+
+describe("solquad", function () {
   const program = new Program<Solquad>(idl as Solquad, programId, provider)
   const program2 = new Program<Solquad>(idl as Solquad, programId, provider2)
 
@@ -66,8 +74,6 @@ describe("solquad", () => {
     program.programId
   );
 
-  airdrop(admin, provider);//.then(() => console.log(`airdrop #1 complete`));
-  airdrop(admin2, provider2);//.then(() => console.log(`airdrop #1 complete`));
 
   // Test 1
   it("initializes escrow and pool", async () => {

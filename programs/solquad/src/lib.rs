@@ -39,11 +39,24 @@ pub mod solquad {
     pub fn add_project_to_pool(ctx: Context<AddProjectToPool>) -> Result<()> {
         let escrow_account = &mut ctx.accounts.escrow_account;
         let pool_account = &mut ctx.accounts.pool_account;
-        let project_account = &ctx.accounts.project_account;
+        let project_account = &mut ctx.accounts.project_account;
+
+        // SOL:1
+        // if pool_account.projects.contains(&project_account.project_owner) {
+        //     return err!(InitError::ProjectAlreadyInPool);
+        // }
+
+        // SOL:2
+        if project_account.in_pool {
+            return err!(InitError::ProjectAlreadyInPool);
+        }
 
         pool_account.projects.push(
             project_account.project_owner
         );
+        // SOL:2
+        project_account.in_pool = true;
+
         pool_account.total_projects += 1;
 
         escrow_account.project_reciever_addresses.push(
@@ -150,6 +163,7 @@ pub struct AddProjectToPool<'info> {
     pub escrow_account: Account<'info, Escrow>,
     #[account(mut)]
     pub pool_account: Account<'info, Pool>,
+    #[account(mut)]
     pub project_account: Account<'info, Project>,
     pub project_owner: Signer<'info>,
 }
@@ -202,6 +216,7 @@ pub struct Project {
     pub votes_count: u64,
     pub voter_amount: u64,
     pub distributed_amt: u64,
+    pub in_pool: bool, 
 }
 
 // Voters voting for the project
@@ -210,4 +225,10 @@ pub struct Voter {
     pub voter: Pubkey,
     pub voted_for: Pubkey,
     pub token_amount: u64
+}
+
+#[error_code]
+pub enum InitError {
+    #[msg("The project is already in the pool. Cannot add it")]
+    ProjectAlreadyInPool,
 }
