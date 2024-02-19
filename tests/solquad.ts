@@ -1,14 +1,14 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import idl from "../target/idl/solquad.json";
-import {Solquad} from "../target/idl/solquad";
+import {Solquad} from "../target/types/solquad";
 
 import { utf8 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import {BN} from "bn.js";
 
-describe("solquad", async () => {
-  const connection = new anchor.web3.Connection(anchor.web3.clusterApiUrl("devnet"), 'confirmed');
-  const programId = new anchor.web3.PublicKey("3fowu869PY6frqrYPdhtCzsm7j1jgjpr47HyuyMP9xUH");
+describe("solquad", () => {
+  const connection = new anchor.web3.Connection("http://localhost:8899" /*anchor.web3.clusterApiUrl("devnet")*/, 'confirmed');
+  const programId = new anchor.web3.PublicKey("5dTxFCE8CjNc11j6tuQGqgMoh77oJRaC1TTZ89ihFySR");
 
   const admin = anchor.web3.Keypair.generate();
   const admin2 = anchor.web3.Keypair.generate();
@@ -30,7 +30,7 @@ describe("solquad", async () => {
   const voter5 = anchor.web3.Keypair.generate();
   const voter6 = anchor.web3.Keypair.generate();
 
-  const [escrowPDA] = await anchor.web3.PublicKey.findProgramAddressSync([
+  const [escrowPDA] = anchor.web3.PublicKey.findProgramAddressSync([
     utf8.encode("escrow"),
     admin.publicKey.toBuffer(),
   ],
@@ -66,8 +66,8 @@ describe("solquad", async () => {
     program.programId
   );
 
-  airdrop(admin, provider);
-  airdrop(admin2, provider);
+  airdrop(admin, provider);//.then(() => console.log(`airdrop #1 complete`));
+  airdrop(admin2, provider2);//.then(() => console.log(`airdrop #1 complete`));
 
   // Test 1
   it("initializes escrow and pool", async () => {
